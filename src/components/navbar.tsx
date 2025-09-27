@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useSession, signIn, signOut } from 'next-auth/react'
 import { Home, Search, Plus, MessageSquare, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -11,9 +11,10 @@ import { SearchModal } from '@/components/search-modal'
 interface NavbarProps {
   activeTab: string
   onTabChange: (tab: string) => void
+  onVideoUploaded?: () => void
 }
 
-export function Navbar({ activeTab, onTabChange }: NavbarProps) {
+export function Navbar({ activeTab, onTabChange, onVideoUploaded }: NavbarProps) {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
   const { data: session, status } = useSession()
@@ -45,6 +46,12 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
   const handleSearchClick = () => {
     setIsSearchModalOpen(true)
   }
+
+  const handleUploadSuccess = useCallback(() => {
+    if (onVideoUploaded) {
+      onVideoUploaded()
+    }
+  }, [onVideoUploaded])
 
   return (
     <>
@@ -147,6 +154,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
       <UploadModal
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
+        onUploadSuccess={handleUploadSuccess}
       />
 
       {/* Search Modal */}

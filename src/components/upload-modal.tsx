@@ -13,9 +13,10 @@ import { useToast } from '@/hooks/use-toast'
 interface UploadModalProps {
   isOpen: boolean
   onClose: () => void
+  onUploadSuccess?: () => void
 }
 
-export function UploadModal({ isOpen, onClose }: UploadModalProps) {
+export function UploadModal({ isOpen, onClose, onUploadSuccess }: UploadModalProps) {
   const [videoFile, setVideoFile] = useState<File | null>(null)
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
   const [title, setTitle] = useState('')
@@ -103,8 +104,18 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
       formData.append('description', description)
       formData.append('tags', tags)
 
-      // Simulate API call (replace with actual upload)
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Upload video to API
+      const response = await fetch('/api/videos/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Upload failed')
+      }
+
+      const result = await response.json()
       
       clearInterval(progressInterval)
       setUploadProgress(100)
@@ -120,6 +131,11 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
         title: "Upload successful!",
         description: "Your video has been uploaded and is being processed.",
       })
+
+      // Call success callback if provided
+      if (onUploadSuccess) {
+        onUploadSuccess()
+      }
 
       // Close modal after a short delay
       setTimeout(() => {

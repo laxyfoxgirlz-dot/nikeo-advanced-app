@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { VideoPlayer } from '@/components/video-player'
@@ -38,8 +38,37 @@ export default function Home() {
   const router = useRouter()
 
   useEffect(() => {
-    // Start with empty videos array - no content yet
-    setVideos([])
+    const fetchVideos = async () => {
+      try {
+        const response = await fetch('/api/videos')
+        if (response.ok) {
+          const data = await response.json()
+          setVideos(data.videos)
+        }
+      } catch (error) {
+        console.error('Error fetching videos:', error)
+        // Keep empty array on error
+      }
+    }
+
+    fetchVideos()
+  }, [])
+
+  const handleVideoUploaded = useCallback(() => {
+    // Refresh videos after upload
+    const fetchVideos = async () => {
+      try {
+        const response = await fetch('/api/videos')
+        if (response.ok) {
+          const data = await response.json()
+          setVideos(data.videos)
+        }
+      } catch (error) {
+        console.error('Error fetching videos:', error)
+      }
+    }
+
+    fetchVideos()
   }, [])
 
   useEffect(() => {
@@ -94,7 +123,7 @@ export default function Home() {
 
   return (
     <div className="flex h-screen bg-black text-white overflow-hidden">
-      <Navbar activeTab={activeTab} onTabChange={setActiveTab} />
+      <Navbar activeTab={activeTab} onTabChange={setActiveTab} onVideoUploaded={handleVideoUploaded} />
       
       <div className="flex-1 flex">
         <div className="flex-1 relative overflow-hidden">
